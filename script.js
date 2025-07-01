@@ -1,36 +1,82 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const form = document.querySelector("form");
-  const nomeInput = document.querySelector('input[name="nome"]');
-  const deptInput = document.querySelector('input[name="departamento"]');
+$(document).ready(function () {
+  // Dados simulados para teste. Substitua por seus dados reais.
+  const estruturaPastas = [
+    {
+      id: "adm",
+      parent: "#",
+      text: "Administrativo"
+    },
+    {
+      id: "adm-financeiro",
+      parent: "adm",
+      text: "Financeiro"
+    },
+    {
+      id: "adm-rh",
+      parent: "adm",
+      text: "Recursos Humanos"
+    },
+    {
+      id: "comercial",
+      parent: "#",
+      text: "Comercial"
+    },
+    {
+      id: "comercial-vendas",
+      parent: "comercial",
+      text: "Vendas"
+    }
+  ];
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
+  $('#tree').jstree({
+    'core': {
+      'data': estruturaPastas
+    },
+    'checkbox': {
+      'keep_selected_style': false,
+      'three_state': true,
+      'tie_selection': false
+    },
+    'plugins': ["checkbox"]
+  });
 
-    // Coletar pastas selecionadas
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
-    const pastasSelecionadas = Array.from(checkboxes).map((el) => el.value);
+  $('#enviar').click(function () {
+    const nome = $('#nome').val().trim();
+    const departamento = $('#departamento').val().trim();
+    const pastasSelecionadas = $('#tree').jstree('get_checked', true).map(node => node.text);
 
-    const dados = {
-      nome: nomeInput.value,
-      departamento: deptInput.value,
-      pastas: pastasSelecionadas,
+    if (!nome || !departamento || pastasSelecionadas.length === 0) {
+      alert('Preencha todos os campos e selecione pelo menos uma pasta.');
+      return;
+    }
+
+    // Dados que serão enviados
+    const payload = {
+      nome: nome,
+      departamento: departamento,
+      pastas: pastasSelecionadas.join(", ")
     };
 
-    fetch("https://script.google.com/macros/s/AKfycbxW-BrvM4ORJV-LFG1rVemUuVbwJZ3BkkocWsjP0YKoJNvUwgGq03v6Focrqlce6bd9/exec", {
+    // URL do seu script Google Apps Script
+    const url = "https://script.google.com/macros/s/AKfycbxW-BrvM4ORJV-LFG1rVemUuVbwJZ3BkkocWsjP0YKoJNvUwgGq03v6Focrqlce6bd9/exec";
+
+    fetch(url, {
       method: "POST",
-      body: JSON.stringify(dados),
+      mode: "no-cors",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
+      body: JSON.stringify(payload)
     })
-      .then((res) => res.text())
-      .then((mensagem) => {
-        alert("Formulário enviado com sucesso!");
-        form.reset();
-      })
-      .catch((err) => {
-        alert("Erro ao enviar formulário.");
-        console.error(err);
-      });
+    .then(() => {
+      alert("Formulário enviado com sucesso!");
+      $('#nome').val('');
+      $('#departamento').val('');
+      $('#tree').jstree('uncheck_all');
+    })
+    .catch(error => {
+      console.error("Erro ao enviar:", error);
+      alert("Erro ao enviar o formulário.");
+    });
   });
 });
