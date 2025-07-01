@@ -33,35 +33,7 @@
   <button id="enviar">Enviar</button>
 </div>
 
-<script>
-$(function(){
-  $.getJSON("pastas.json", function(data){
-     $('#tree').jstree({
-        core:{ data:data, themes:{dots:false} },
-        plugins:["checkbox"],
-        checkbox:{ three_state:true, cascade:"undetermined" }
-     });
-  });
 
-  $('#enviar').on('click', async function(){
-      const nome = $('#nome').val().trim();
-      const departamento = $('#departamento').val().trim();
-      const pastas = $('#tree').jstree('get_checked', true).map(n => n.text);
-
-      if(!nome || !departamento || pastas.length===0){
-          alert('Preencha nome, departamento e selecione pelo menos uma pasta.');
-          return;
-      }
-
-      await fetch('https://script.google.com/macros/s/AKfycbxW-BrvM4ORJV-LFG1rVemUuVbwJZ3BkkocWsjP0YKoJNvUwgGq03v6Focrqlce6bd9/exec',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({ nome:nome, departamento:departamento, pastas:pastas })
-      });
-      alert('Solicitação enviada. Obrigado!');
-      location.reload();
-  });
-});
-</script>
+<script src="script.js"></script>
 </body>
 </html>
