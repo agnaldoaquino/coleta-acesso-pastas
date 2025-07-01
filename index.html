@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Solicitação de Acesso a Pastas</title>
+  <!-- jsTree & jQuery CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jstree@3.3.15/dist/themes/default/style.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jstree@3.3.15/dist/jstree.min.js"></script>
+
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f4f6fa;padding:40px}
+    .wrapper{max-width:900px;margin:auto;background:#fff;padding:30px;border-radius:8px;box-shadow:0 0 10px #0001}
+    input[type=text]{width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px}
+    button{padding:10px 18px;margin-top:20px;background:#0069d9;border:none;border-radius:4px;color:#fff;font-size:15px;cursor:pointer}
+    button:hover{background:#0053b3}
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <h2 style="text-align:center">Solicitação de Acesso a Pastas</h2>
+
+  <label>Nome:</label>
+  <input type="text" id="nome" required>
+
+  <label style="margin-top:14px">Departamento:</label>
+  <input type="text" id="departamento" required>
+
+  <h4 style="margin:22px 0 10px">Pastas que utiliza:</h4>
+  <div id="tree"></div>
+
+  <button id="enviar">Enviar</button>
+</div>
+
+<script>
+$(function(){
+  $.getJSON("pastas.json", function(data){
+     $('#tree').jstree({
+        core:{ data:data, themes:{dots:false} },
+        plugins:["checkbox"],
+        checkbox:{ three_state:true, cascade:"undetermined" }
+     });
+  });
+
+  $('#enviar').on('click', async function(){
+      const nome = $('#nome').val().trim();
+      const departamento = $('#departamento').val().trim();
+      const pastas = $('#tree').jstree('get_checked', true).map(n => n.text);
+
+      if(!nome || !departamento || pastas.length===0){
+          alert('Preencha nome, departamento e selecione pelo menos uma pasta.');
+          return;
+      }
+
+      await fetch('https://script.google.com/macros/s/AKfycbxW-BrvM4ORJV-LFG1rVemUuVbwJZ3BkkocWsjP0YKoJNvUwgGq03v6Focrqlce6bd9/exec',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({ nome:nome, departamento:departamento, pastas:pastas })
+      });
+      alert('Solicitação enviada. Obrigado!');
+      location.reload();
+  });
+});
+</script>
+</body>
+</html>
